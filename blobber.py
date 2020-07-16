@@ -1,6 +1,7 @@
 import math
 import cv2 as cv
 import numpy as np
+import ball_net as bn
 
 
 cnt = 0
@@ -122,6 +123,8 @@ def handle_blobs(mask, frame):
 
     cut_f = frame[ry : ry + rh, rx : rx + rw]
     cut_c = cv.bitwise_and(cut_f,cut_f,mask = cut_m)
+    if bn.check_pic(cut_c) != 0:
+      continue
     ((x, y), r) = cv.minEnclosingCircle(c)
     handle_blob(int(x), int(y), int(r))
     k += 1
@@ -177,10 +180,10 @@ def test_clip(path):
     if not ret or frame is None:
       break
 
-    h = frame.shape[0]
-    w = frame.shape[1]
+    h = int(frame.shape[0] / 2)
+    w = int(frame.shape[1] / 2)
 
-    frame = cv.resize(frame, (int(w/2),int(h/2)))
+    frame = cv.resize(frame, (w, h))
     mask = backSub.apply(frame)
 
     mask = cv.dilate(mask, None)
@@ -190,9 +193,11 @@ def test_clip(path):
     handle_blobs(mask, frame)
     pic = draw_blobs(w, h)
     cv.imshow('frame', pic)
+    #cv.imwrite("frames/frame-{:03d}.jpg".format(n), pic)    
     if cv.waitKey(10) == 27:
       break
+    n += 1
 
 
 if __name__ == "__main__":
-  test_clip("D:/Videos/aus4.avi")
+  test_clip(sys.argv[1])
