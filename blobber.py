@@ -6,7 +6,7 @@ import ball_net as bn
 
 cnt = 0
 
-R = 50
+R = 60
 EPS = 1e-6
 EPS2 = 0.5
 
@@ -21,12 +21,17 @@ def pt_dist(x1, y1, x2, y2):
   return math.sqrt(dx * dx + dy * dy)
 
 class Blob:
+  cnt = 1
   def __init__(self, x, y, r, a):
+    self.id = Blob.cnt 
+    Blob.cnt += 1
     self.pts = [[x, y]]
     self.pp = [[r, a]]
     self.status = STATUS_INIT
     self.v = None
     self.age = a
+    self.nx = None
+    self.ny = None
 
   def fit(self, x, y, r):
     d = pt_dist(self.pts[-1][0], self.pts[-1][1], x, y)
@@ -37,19 +42,45 @@ class Blob:
     self.pp.append([r, a])
     self.age = a
     if len(self.pts) > 2:
+      #if self.status == STATUS_DIRECTED and self.nx is not None:
+      #  print("Predict", self.nx, self.ny, "vs", x, y)
+
       dx1 = self.pts[-2][0] - self.pts[-3][0]
       dy1 = self.pts[-2][1] - self.pts[-3][1]
 
       dx2 = x - self.pts[-2][0]
       dy2 = y - self.pts[-2][1]
-      d = pt_dist(self.pts[-3][0], self.pts[-3][1], x, y)
-      if dx1 * dx2 > 0 and dy1 * dy2 > 0 and d > 10:
+
+      d1 = pt_dist(self.pts[-2][0], self.pts[-2][1], x, y)
+      d2 = pt_dist(self.pts[-2][0], self.pts[-2][1], self.pts[-3][0], self.pts[-3][1])
+      if dx1 * dx2 > 0 and dy1 * dy2 > 0 and d1 > 5 and d2 > 5:
         self.status = STATUS_DIRECTED
+        #print("Directed", self.pts)
+        #self.predict()
       elif self.status != STATUS_DIRECTED:
         self.status = STATUS_STATIC
+
+  def predict(self):
+    npts = np.array(self.pts)
+    l = len(self.pts) + 1
+    idx = np.array(range(1, l))
+
+    kx = np.polyfit(idx, npts[:,0], 1)
+    fkx = np.poly1d(kx)
+
+    ky = np.polyfit(idx, npts[:,1], 1)
+    fky = np.poly1d(ky)
+
+    self.nx = fkx(l)
+    self.ny = fky(l)
+    return self.nx, self.ny
+
+
+
         
 B = []
 bb = None
+prev_bb = None
 
 def get_ball_blob():
   return bb
@@ -91,12 +122,14 @@ def handle_blob(x, y, r):
 
 
 def begin_gen():
-  global bb
+  global bb, prev_bb
+  prev_bb = bb
   bb = None
 
 def end_gen():
-  global cnt
+  global cnt, bb
   cnt += 1    
+
 
 
 def handle_blobs(mask, frame):
@@ -146,7 +179,25 @@ def check_blob(pic, x, y, w, h):
   nz = cv.countNonZero(pic)
   mn = min(hnz, vnz)
   r = max(hnz, vnz) / mn if mn > 0 else 1000
-  return r < 1.5 and hnz / nz > 0.2 and vnz / nz > 0.2, nz
+  return r < 1.5 and hnz / nz > 0.15 and vnz / nz > 0.15, nz
+
+
+def draw_ball(pic):
+  bb = get_ball_blob()
+  if not bb is None:
+    cv.circle(pic, (bb.pts[-1][0], bb.pts[-1][1]), 10, (0, 200, 0), 3)
+  else:
+    if prev_bb is not None:
+      x, y = prev_bb.predict()
+      cv.circle(pic, (int(x), int(y)), 10, (0, 200, 0), 3)
+
+def draw_ball_path(pic):
+  bb = get_ball_blob()
+  if not bb is None:
+    for p in bb.pts:
+      cv.circle(pic, (p[0], p[1]), 3, (150, 150, 150), -1)
+
+
 
 
 
@@ -163,9 +214,7 @@ def draw_blobs(w, h):
     for p in b.pts:
       cv.circle(pic, (p[0], p[1]), 3, clr, -1)
 
-  bb = get_ball_blob()
-  if not bb is None:
-    cv.circle(pic, (bb.pts[-1][0], bb.pts[-1][1]), 10, (200, 0, 0), 3)
+  draw_ball(pic)
 
   return pic
 
@@ -193,11 +242,11 @@ def test_clip(path):
     handle_blobs(mask, frame)
     pic = draw_blobs(w, h)
     cv.imshow('frame', pic)
-    #cv.imwrite("frames/frame-{:03d}.jpg".format(n), pic)    
+    cv.imwrite("frames/frame-{:03d}.jpg".format(n), pic)    
     if cv.waitKey(10) == 27:
       break
     n += 1
 
 
 if __name__ == "__main__":
-  test_clip(sys.argv[1])
+  test_clip("D:/Videos/aus4.avi")

@@ -2,6 +2,7 @@ import numpy as np
 import cv2 as cv
 import os
 import ball_net as bn
+import blobber
 
 def draw_ball(mask, frame):
   cnts, _ = cv.findContours(mask, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
@@ -42,8 +43,10 @@ def test_clip(path):
     mask = cv.dilate(mask, None)
     mask = cv.GaussianBlur(mask, (15, 15),0)
     ret,mask = cv.threshold(mask,0,255,cv.THRESH_BINARY | cv.THRESH_OTSU)
-
-    draw_ball(mask, frame)
+    blobber.handle_blobs(mask, frame)
+    
+    blobber.draw_ball_path(frame)
+    blobber.draw_ball(frame)
     cv.imwrite("frames/frame-{:03d}.jpg".format(n), frame)
     cv.imshow('frame', frame)
     if cv.waitKey(10) == 27:
