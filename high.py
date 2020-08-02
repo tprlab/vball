@@ -1,5 +1,12 @@
 import sys
 import cv2 as cv
+import os
+
+def check_dir(path):
+  if path is None:
+    return
+  if not os.path.isdir(path):
+    os.makedirs(path)        
 
 def get_high(mask):
   cnts, _ = cv.findContours(mask, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
@@ -33,6 +40,9 @@ def draw_high_cont(path):
     cv.waitKey()
 
 def get_high_blobs(clip_path, out_path = None, clr_out_path = None):
+  check_dir(out_path)
+  check_dir(clr_out_path)
+
   vs = cv.VideoCapture(clip_path)
   backSub = cv.createBackgroundSubtractorMOG2()
 
@@ -66,8 +76,8 @@ def get_high_blobs(clip_path, out_path = None, clr_out_path = None):
 
 
 if __name__ == "__main__":
-  draw_high_cont(sys.argv[1])
-  #get_high_blobs(sys.argv[1], sys.argv[2], sys.argv[2])
+  #draw_high_cont(sys.argv[1])
+  get_high_blobs(sys.argv[1], sys.argv[2], sys.argv[2])
   #get_high_blobs("D:/Videos/aus4.avi", "out", "clr")
 
 

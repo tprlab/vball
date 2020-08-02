@@ -3,6 +3,7 @@ import cv2 as cv
 import os
 import ball_net as bn
 import blobber
+import sys
 
 def draw_ball(mask, frame):
   cnts, _ = cv.findContours(mask, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
@@ -54,4 +55,5 @@ def test_clip(path):
     n += 1
 
 
-test_clip("D:/Videos/aus4.avi")
+#test_clip("D:/Videos/aus4.avi")
+test_clip(sys.argv[1])

@@ -2,6 +2,7 @@ import math
 import cv2 as cv
 import numpy as np
 import ball_net as bn
+import sys
 
 
 cnt = 0
@@ -249,4 +250,5 @@ def test_clip(path):
 
 
 if __name__ == "__main__":
-  test_clip("D:/Videos/aus4.avi")
+  test_clip(sys.argv[1])
+  #test_clip("D:/Videos/aus4.avi")
