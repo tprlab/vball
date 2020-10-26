@@ -37,3 +37,5 @@ You will see and output with ball paths like that:
 - Used an open dataset from [some austrian league](https://www.tugraz.at/institute/icg/research/team-bischof/lrs/downloads/vb14/)
 - [Story @ TowardDataScience](https://towardsdatascience.com/ball-tracking-in-volleyball-with-opencv-and-tensorflow-3d6e857bd2e7)
 - [Story @ Habr(Russian)](https://habr.com/ru/post/505672/)
+- [vball.io](https://vball.io) - a service I started to cut rallies and digest volleball videos based on this ball tracking algo.
+
